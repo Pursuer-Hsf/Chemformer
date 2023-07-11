@@ -5,6 +5,7 @@ lightning_logs
 molbart.egg-info/
 slurm/
 tb_logs/
+logs/
 saved_models/
 notebooks/data/
 notebooks/.ipynb_checkpoints/
