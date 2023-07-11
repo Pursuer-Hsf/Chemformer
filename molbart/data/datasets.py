@@ -112,6 +112,8 @@ class ReactionDataset(_AbsDataset):
         val_idxs = df.index[df["set"] == "valid"].tolist()
         test_idxs = df.index[df["set"] == "test"].tolist()
 
+
+        # 检查重叠
         if len(set(val_idxs).intersection(set(test_idxs))) > 0:
             raise ValueError(f"Val idxs and test idxs overlap")
         if len(set(train_idxs).intersection(set(test_idxs))) > 0:
@@ -133,13 +135,13 @@ class ReactionDataset(_AbsDataset):
         return mol_str
 
 
-class Uspto50(ReactionDataset):
+class Uspto50(ReactionDataset):     # USPTO-50K数据集 
     def __init__(self, data_path, aug_prob, type_token=False, forward=True):
         path = Path(data_path)
         df = pd.read_pickle(path)
         reactants = df["reactants_mol"].tolist()
         products = df["products_mol"].tolist()
-        type_tokens = df["reaction_type"].tolist()
+        type_tokens = df["reaction_type"].tolist()      # 读取数据到列表，反应物生成物和反应类型
 
         super().__init__(reactants, products, items=type_tokens, transform=self._prepare_strings, aug_prob=aug_prob)
 
@@ -147,11 +149,11 @@ class Uspto50(ReactionDataset):
         self.forward = forward
         self.train_idxs, self.val_idxs, self.test_idxs = self._save_idxs(df)
 
-    def _prepare_strings(self, react, prod, type_token):
-        react_str = self._augment_to_smiles(react)
-        prod_str = self._augment_to_smiles(prod)
+    def _prepare_strings(self, react, prod, type_token):        # 将反应物生成物和反应类型转换为字符串，动态增强
+        react_str = self._augment_to_smiles(react)      # 动态增强
+        prod_str = self._augment_to_smiles(prod)        # 动态增强
 
-        if self.forward:
+        if self.forward:        # 正向预测，在反应物前加上反应类型，反之在生成物前加上反应类型
             react_str = f"{str(type_token)}{react_str}" if self.type_token else react_str
         else:
             prod_str = f"{str(type_token)}{prod_str}" if self.type_token else prod_str
@@ -159,7 +161,7 @@ class Uspto50(ReactionDataset):
         return react_str, prod_str
 
 
-class UsptoMixed(ReactionDataset):
+class UsptoMixed(ReactionDataset):      # 
     def __init__(self, data_path, aug_prob):
         path = Path(data_path)
         df = pd.read_pickle(path)
@@ -182,7 +184,7 @@ class UsptoSep(ReactionDataset):
         path = Path(data_path)
         df = pd.read_pickle(path)
         reactants = df["reactants_mol"].tolist()
-        reagents = df["reagents_mol"].tolist()
+        reagents = df["reagents_mol"].tolist()      # 试剂
         products = df["products_mol"].tolist()
 
         super().__init__(reactants, products, items=reagents, transform=self._prepare_strings, aug_prob=aug_prob)
